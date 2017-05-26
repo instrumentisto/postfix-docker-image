@@ -101,7 +101,7 @@ release-all:
 # Usage:
 #	make src [DOCKERFILE=] [VERSION=] [TAGS=t1,t2,...]
 
-src: post-push-hook
+src: dockerfile post-push-hook
 
 
 
@@ -117,6 +117,32 @@ src-all:
 			VERSION=$(word 1,$(subst $(comma), ,\
 			                 $(word 2,$(subst :, ,$(img))))) \
 			TAGS=$(word 2,$(subst :, ,$(img))) ; \
+	))
+
+
+
+# Generate Dockerfile from template.
+#
+# Usage:
+#	make dockerfile [DOCKERFILE=]
+
+dockerfile:
+	mkdir -p $(DOCKERFILE)
+	docker run --rm -i -v $(PWD)/Dockerfile.tmpl.php:/Dockerfile.php:ro \
+		php:alpine php -f /Dockerfile.php -- \
+			--dockerfile='$(DOCKERFILE)' \
+		> $(DOCKERFILE)/Dockerfile
+
+
+
+# Generate Dockerfile from template for all supported Docker images.
+#
+# Usage:
+#	make dockerfile-all
+
+dockerfile-all:
+	(set -e ; $(foreach img,$(ALL_IMAGES), \
+		make dockerfile DOCKERFILE=$(word 1,$(subst :, ,$(img))) ; \
 	))
 
 
@@ -215,5 +241,6 @@ endif
 .PHONY: image tags push \
         release release-all \
         src src-all \
+        dockerfile dockerfile-all \
         post-push-hook post-push-hook-all \
         test test-all deps.bats

@@ -12,7 +12,7 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = false
 
-[Dockerfile]
+[{Dockerfile,Dockerfile.tmpl.php}]
 indent_style = space
 indent_size = 4
 
@@ -27,7 +27,3 @@ indent_size = 2
 [*.{yml,yaml}]
 indent_style = space
 indent_size = 2
-
-[*.php]
-indent_style = space
-indent_size = 4
