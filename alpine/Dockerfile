@@ -72,9 +72,6 @@ RUN apk update \
          AUXLIBS_SQLITE="$(pkg-config --libs sqlite3)" \
          dynamicmaps=yes \
          shared=yes \
-         # No documentation included to keep image size smaller
-         readme_directory= \
-         manpage_directory= \
  && make \
 
  # Create Postfix user and groups
@@ -85,6 +82,9 @@ RUN apk update \
  # Install Postfix
  && make upgrade \
          shlib_directory=/usr/lib/postfix \
+         # No documentation included to keep image size smaller
+         readme_directory=/tmp/readme \
+         manpage_directory=/tmp/man \
  # Always execute these binaries under postdrop group
  && chmod g+s /usr/sbin/postdrop \
               /usr/sbin/postqueue \
