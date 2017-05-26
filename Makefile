@@ -1,11 +1,28 @@
-IMAGE_NAME := instrumentisto/postfix
+# This Makefile automates possible operations of this project.
+#
+# Images and description on Docker Hub will be automatically rebuilt on
+# pushes to `master` branch of this repo and on updates of parent images.
+#
+# It's still possible to build, tag and push images manually. Just use:
+#	make release-all
 
-DOCKERFILE ?= .
-VERSION ?= dev
+
+IMAGE_NAME := instrumentisto/postfix
+ALL_IMAGES := \
+	alpine:3.1.3-alpine,3.1-alpine,3-apache,alpine
+#	<Dockerfile>:<version>,<tag1>,<tag2>,...
+
+
+# Default is first image from ALL_IMAGES list.
+DOCKERFILE ?= $(word 1,$(subst :, ,$(word 1,$(ALL_IMAGES))))
+VERSION ?=  $(word 1,$(subst $(comma), ,\
+                     $(word 2,$(subst :, ,$(word 1,$(ALL_IMAGES))))))
+TAGS ?= $(word 2,$(subst :, ,$(word 1,$(ALL_IMAGES))))
 
 no-cache ?= no
 
 
+comma := ,
 eq = $(if $(or $(1),$(2)),$(and $(findstring $(1),$(2)),\
                                 $(findstring $(2),$(1))),1)
 
@@ -23,13 +40,90 @@ image:
 
 
 
+# Tag Docker image with given tags.
+#
+# Usage:
+#	make tags [VERSION=] [TAGS=t1,t2,...]
+
+parsed-tags = $(subst $(comma), $(space), $(TAGS))
+
+tags:
+	(set -e ; $(foreach tag, $(parsed-tags), \
+		docker tag $(IMAGE_NAME):$(VERSION) $(IMAGE_NAME):$(tag) ; \
+	))
+
+
+
+# Manually push Docker images to Docker Hub.
+#
+# Usage:
+#	make push [TAGS=t1,t2,...]
+
+push:
+	(set -e ; $(foreach tag, $(parsed-tags), \
+		docker push $(IMAGE_NAME):$(tag) ; \
+	))
+
+
+
+# Make manual release of Docker images to Docker Hub.
+#
+# Usage:
+#	make release [no-cache=(yes|no)] [DOCKERFILE=] [VERSION=] [TAGS=t1,t2,...]
+
+release: | image tags push
+
+
+
+# Make manual release of all supported Docker images to Docker Hub.
+#
+# Usage:
+#	make release-all [no-cache=(yes|no)]
+
+release-all:
+	(set -e ; $(foreach img,$(ALL_IMAGES), \
+		make release no-cache=$(no-cache) \
+			DOCKERFILE=$(word 1,$(subst :, ,$(img))) \
+			VERSION=$(word 1,$(subst $(comma), ,\
+			                 $(word 2,$(subst :, ,$(img))))) \
+			TAGS=$(word 2,$(subst :, ,$(img))) ; \
+	))
+
+
+
 # Run tests for Docker image.
 #
 # Usage:
-#	make test [VERSION=]
+#	make test [DOCKERFILE=] [VERSION=]
 
 test: deps.bats
-	IMAGE=$(IMAGE_NAME):$(VERSION) ./test/bats/bats test/suite.bats
+	DOCKERFILE=$(DOCKERFILE) IMAGE=$(IMAGE_NAME):$(VERSION) \
+		./test/bats/bats test/suite.bats
+
+
+
+# Run tests for all supported Docker images.
+#
+# Usage:
+#	make test-all [prepare-images=(no|yes)]
+
+prepare-images ?= no
+
+test-all:
+ifeq ($(prepare-images),yes)
+	(set -e ; $(foreach img,$(ALL_IMAGES), \
+		make image no-cache=$(no-cache) \
+			DOCKERFILE=$(word 1,$(subst :, ,$(img))) \
+			VERSION=$(word 1,$(subst $(comma), ,\
+			                 $(word 2,$(subst :, ,$(img))))) ; \
+	))
+endif
+	(set -e ; $(foreach img,$(ALL_IMAGES), \
+		make test \
+			DOCKERFILE=$(word 1,$(subst :, ,$(img))) \
+			VERSION=$(word 1,$(subst $(comma), ,\
+			                 $(word 2,$(subst :, ,$(img))))) ; \
+	))
 
 
 
@@ -54,4 +148,6 @@ endif
 
 
 
-.PHONY: image test deps.bats
+.PHONY: image tags push \
+        release release-all \
+        test test-all deps.bats
