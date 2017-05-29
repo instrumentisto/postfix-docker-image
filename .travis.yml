@@ -7,6 +7,7 @@ services:
 
 env:
   - Dockerfile=alpine
+  - Dockerfile=debian
 
 before_script:
   - make image DOCKERFILE=$Dockerfile VERSION=test

@@ -5,6 +5,7 @@ $isAlpineImage = (end(explode('/', $var['dockerfile'])) === 'alpine');
 $PostfixVer = '3.1.3';
 $PostfixSha512Sum = '00e2b0974e59420cabfddc92597a99b42c8a8c9cd9a0c279c63ba6be9f40b15400f37dc16d0b1312130e72b5ba82b56fc7d579ee9ef975a957c0931b0401213c';
 $AlpineRepoCommit = '2b1512eefca296b0ef1b60d2e521349385a3c353';
+$DebianRepoCommit = '94dfb9850484db5f47958eaa86f958857ab9834c';
 
 $S6OverlayVer = '1.19.1.1';
 ?>
@@ -22,27 +23,51 @@ FROM debian:stretch-slim
 MAINTAINER Instrumentisto Team <developer@instrumentisto.com>
 
 
-<? if ($isAlpineImage) { ?>
 # Build and install Postfix
+<? if ($isAlpineImage) { ?>
 # https://git.alpinelinux.org/cgit/aports/tree/main/postfix/APKBUILD?h=<?= $AlpineRepoCommit."\n"; ?>
 RUN apk update \
  && apk upgrade \
  && apk add --no-cache \
         ca-certificates \
+<? } else { ?>
+# https://git.launchpad.net/postfix/tree/debian/rules?id=<?= $DebianRepoCommit."\n"; ?>
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends \
+            inetutils-syslogd \
+            ca-certificates \
+<? } ?>
  && update-ca-certificates \
 
  # Install Postfix dependencies
+<? if ($isAlpineImage) { ?>
  && apk add --no-cache \
         pcre \
         db libpq mariadb-client-libs sqlite-libs \
         libsasl \
         libldap \
+<? } else { ?>
+ && apt-get install -y --no-install-recommends \
+            libpcre3 \
+            libdb5.3 libpq5 libmariadbclient18 libsqlite3-0 \
+            libsasl2-2 \
+            libldap-2.4 \
+<? } ?>
 
  # Install tools for building
+<? if ($isAlpineImage) { ?>
  && apk add --no-cache --virtual .tool-deps \
         curl coreutils autoconf g++ libtool make \
+<? } else { ?>
+ && toolDeps=" \
+        curl make gcc g++ libc-dev \
+    " \
+ && apt-get install -y --no-install-recommends $toolDeps \
+<? } ?>
 
  # Install Postfix build dependencies
+<? if ($isAlpineImage) { ?>
  && apk add --no-cache --virtual .build-deps \
         libressl-dev \
         linux-headers \
@@ -50,6 +75,16 @@ RUN apk update \
         db-dev postgresql-dev mariadb-dev sqlite-dev \
         cyrus-sasl-dev \
         openldap-dev \
+<? } else { ?>
+ && buildDeps=" \
+        libssl-dev \
+        libpcre3-dev \
+        libdb-dev libpq-dev libmariadbclient-dev libsqlite3-dev \
+        libsasl2-dev \
+        libldap2-dev \
+    " \
+ && apt-get install -y --no-install-recommends $buildDeps \
+<? } ?>
 
  # Download and prepare Postfix sources
  && curl -fL -o /tmp/postfix.tar.gz \
@@ -57,8 +92,8 @@ RUN apk update \
  && (echo "<?= $PostfixSha512Sum; ?>  /tmp/postfix.tar.gz" \
          | sha512sum -c -) \
  && tar -xzf /tmp/postfix.tar.gz -C /tmp/ \
-
  && cd /tmp/postfix-* \
+<? if ($isAlpineImage) { ?>
  && curl -fL -o ./no-glibc.patch \
          https://git.alpinelinux.org/cgit/aports/plain/main/postfix/no-glibc.patch?h=<?= $AlpineRepoCommit; ?> \
  && patch -p1 -i ./no-glibc.patch \
@@ -71,66 +106,113 @@ RUN apk update \
  && sed -i -e "s|#define HAS_NIS|//#define HAS_NIS|g" \
            -e "/^#define ALIAS_DB_MAP/s|:/etc/aliases|:/etc/postfix/aliases|" \
         src/util/sys_defs.h \
+<? } ?>
  && sed -i -e "s:/usr/local/:/usr/:g" conf/master.cf \
 
  # Build Postfix from sources
  && make makefiles \
-         CCARGS="-DHAS_SHL_LOAD -DDEF_DAEMON_DIR=\\\"/usr/lib/postfix\\\" \
+<? if ($isAlpineImage) { ?>
+         CCARGS="-DHAS_SHL_LOAD -DUSE_TLS \
                  -DHAS_PCRE $(pkg-config --cflags libpcre) \
-                 -DUSE_TLS \
-                 -DUSE_SASL_AUTH -DDEF_SASL_SERVER=\\\"dovecot\\\" \
-                 -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl \
                  -DHAS_PGSQL $(pkg-config --cflags libpq) \
                  -DHAS_MYSQL $(mysql_config --include) \
-                 -DHAS_LDAP -DUSE_LDAP_SASL \
-                 -DHAS_SQLITE $(pkg-config --cflags sqlite3)" \
+                 -DHAS_SQLITE $(pkg-config --cflags sqlite3) \
+                 -DHAS_LDAP \
+                 -DUSE_CYRUS_SASL -I/usr/include/sasl \
+                 -DUSE_SASL_AUTH -DDEF_SASL_SERVER=\\\"dovecot\\\" \
+                 -DUSE_LDAP_SASL" \
          AUXLIBS="-lssl -lcrypto -lsasl2" \
-         AUXLIBS_LDAP="-lldap -llber" \
-         AUXLIBS_MYSQL="$(mysql_config --libs)" \
          AUXLIBS_PCRE="$(pkg-config --libs libpcre)" \
          AUXLIBS_PGSQL="$(pkg-config --libs libpq)" \
+         AUXLIBS_MYSQL="$(mysql_config --libs)" \
          AUXLIBS_SQLITE="$(pkg-config --libs sqlite3)" \
-         dynamicmaps=yes \
+         AUXLIBS_LDAP="-lldap -llber" \
+<? } else { ?>
+         CCARGS="-DHAS_SHL_LOAD -DUSE_TLS \
+                 -DHAS_PCRE $(pcre-config --cflags) \
+                 -DHAS_PGSQL -I/usr/include/postgresql \
+                 -DHAS_MYSQL $(mysql_config --include) \
+                 -DHAS_SQLITE -I/usr/include \
+                 -DHAS_LDAP -I/usr/include \
+                 -DUSE_CYRUS_SASL -I/usr/include/sasl \
+                 -DUSE_SASL_AUTH -DDEF_SASL_SERVER=\\\"dovecot\\\" \
+                 -DUSE_LDAP_SASL" \
+         AUXLIBS="-lssl -lcrypto -lsasl2" \
+         AUXLIBS_PCRE="$(pcre-config --libs)" \
+         AUXLIBS_PGSQL="-lpq" \
+         AUXLIBS_MYSQL="$(mysql_config --libs)" \
+         AUXLIBS_SQLITE="-lsqlite3 -lpthread" \
+         AUXLIBS_LDAP="-lldap -llber" \
+<? } ?>
          shared=yes \
+         dynamicmaps=yes \
+         pie=yes \
+         daemon_directory=/usr/lib/postfix \
+         shlibs_directory=/usr/lib/postfix \
+         # No documentation included to keep image size smaller
+         manpage_directory=/tmp/man \
+         readme_directory=/tmp/readme \
+         html_directory=/tmp/html \
  && make \
 
  # Create Postfix user and groups
- && addgroup -g 101 -S postfix \
- && adduser -u 100 -D -S -G postfix postfix \
- && addgroup -g 102 -S postdrop \
+<? if ($isAlpineImage) { ?>
+ && addgroup -g 111 -S postfix \
+ && adduser -u 110 -S -H -D -G postfix postfix \
+ && addgroup -g 112 -S postdrop \
+<? } else { ?>
+ && addgroup --system --gid 111 postfix \
+ && adduser --system --no-create-home --disabled-password \
+            --uid 110 --ingroup postfix \
+            postfix \
+ && addgroup --system --gid 112 postdrop \
+<? } ?>
 
  # Install Postfix
  && make upgrade \
-         shlib_directory=/usr/lib/postfix \
-         # No documentation included to keep image size smaller
-         readme_directory=/tmp/readme \
-         manpage_directory=/tmp/man \
  # Always execute these binaries under postdrop group
  && chmod g+s /usr/sbin/postdrop \
               /usr/sbin/postqueue \
- # Ensure spool dir has coorect rights
+ # Ensure spool dir has correct rights
  && install -d -o postfix -g postfix /var/spool/postfix \
 
  # Cleanup unnecessary stuff
+<? if ($isAlpineImage) { ?>
  && apk del .tool-deps .build-deps \
  && rm -rf /var/cache/apk/* \
-           /tmp/*
+<? } else { ?>
+ && apt-get purge -y --auto-remove \
+                  -o APT::AutoRemove::RecommendsImportant=false \
+            $toolDeps $buildDeps \
+ && rm -rf /var/lib/apt/lists/* \
 <? } ?>
+           /tmp/*
 
 
 # Install s6-overlay
 <? if ($isAlpineImage) { ?>
 RUN apk add --update --no-cache --virtual .tool-deps \
         curl \
+<? } else { ?>
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+            curl \
+<? } ?>
  && curl -fL -o /tmp/s6-overlay.tar.gz \
          https://github.com/just-containers/s6-overlay/releases/download/v<?= $S6OverlayVer; ?>/s6-overlay-amd64.tar.gz \
  && tar -xzf /tmp/s6-overlay.tar.gz -C / \
 
  # Cleanup unnecessary stuff
+<? if ($isAlpineImage) { ?>
  && apk del .tool-deps \
  && rm -rf /var/cache/apk/* \
-           /tmp/*
+<? } else { ?>
+ && apt-get purge -y --auto-remove \
+                  -o APT::AutoRemove::RecommendsImportant=false \
+            curl \
+ && rm -rf /var/lib/apt/lists/* \
 <? } ?>
+           /tmp/*
 
 ENV S6_CMD_WAIT_FOR_SERVICES=1
 

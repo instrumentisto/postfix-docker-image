@@ -14,6 +14,7 @@
 
 IMAGE_NAME := instrumentisto/postfix
 ALL_IMAGES := \
+	debian:3.1.3,3.1,3,latest \
 	alpine:3.1.3-alpine,3.1-alpine,3-alpine,alpine
 #	<Dockerfile>:<version>,<tag1>,<tag2>,...
 
