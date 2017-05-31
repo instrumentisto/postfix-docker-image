@@ -34,7 +34,7 @@ RUN apk update \
 # https://git.launchpad.net/postfix/tree/debian/rules?id=<?= $DebianRepoCommit."\n"; ?>
 RUN apt-get update \
  && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends \
+ && apt-get install -y --no-install-recommends --no-install-suggests \
             inetutils-syslogd \
             ca-certificates \
 <? } ?>
@@ -48,7 +48,7 @@ RUN apt-get update \
         libsasl \
         libldap \
 <? } else { ?>
- && apt-get install -y --no-install-recommends \
+ && apt-get install -y --no-install-recommends --no-install-suggests \
             libpcre3 \
             libdb5.3 libpq5 libmariadbclient18 libsqlite3-0 \
             libsasl2-2 \
@@ -63,7 +63,8 @@ RUN apt-get update \
  && toolDeps=" \
         curl make gcc g++ libc-dev \
     " \
- && apt-get install -y --no-install-recommends $toolDeps \
+ && apt-get install -y --no-install-recommends --no-install-suggests \
+            $toolDeps \
 <? } ?>
 
  # Install Postfix build dependencies
@@ -83,7 +84,8 @@ RUN apt-get update \
         libsasl2-dev \
         libldap2-dev \
     " \
- && apt-get install -y --no-install-recommends $buildDeps \
+ && apt-get install -y --no-install-recommends --no-install-suggests \
+            $buildDeps \
 <? } ?>
 
  # Download and prepare Postfix sources
@@ -195,12 +197,25 @@ RUN apk add --update --no-cache --virtual .tool-deps \
         curl \
 <? } else { ?>
 RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+ && apt-get install -y --no-install-recommends --no-install-suggests \
             curl \
 <? } ?>
  && curl -fL -o /tmp/s6-overlay.tar.gz \
          https://github.com/just-containers/s6-overlay/releases/download/v<?= $S6OverlayVer; ?>/s6-overlay-amd64.tar.gz \
+<? if ($isAlpineImage) { ?>
  && tar -xzf /tmp/s6-overlay.tar.gz -C / \
+<? } else { ?>
+ # In Debian: /bin -> /usr/bin
+ # So unpacking s6-overlay.tar.gz to the / will replace /bin symlink with
+ # /bin directory from archive.
+ # To avoid this we need to copy content of /bin manually.
+ && mkdir -p /tmp/s6-overlay \
+ && tar -xzf /tmp/s6-overlay.tar.gz -C /tmp/s6-overlay/ \
+ && cp -rf /tmp/s6-overlay/bin/* /bin/ \
+ && rm -rf /tmp/s6-overlay/bin \
+           /tmp/s6-overlay/usr/bin/execlineb \
+ && cp -rf /tmp/s6-overlay/* / \
+<? } ?>
 
  # Cleanup unnecessary stuff
 <? if ($isAlpineImage) { ?>
