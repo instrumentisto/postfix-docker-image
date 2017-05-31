@@ -159,15 +159,29 @@ RUN apt-get update \
 
  # Create Postfix user and groups
 <? if ($isAlpineImage) { ?>
- && addgroup -g 111 -S postfix \
- && adduser -u 110 -S -H -D -G postfix postfix \
- && addgroup -g 112 -S postdrop \
-<? } else { ?>
- && addgroup --system --gid 111 postfix \
- && adduser --system --no-create-home --disabled-password \
-            --uid 110 --ingroup postfix \
+ && addgroup -S -g 91 postfix \
+ && adduser -S -u 90 -D \
+            -H -h /var/spool/postfix \
+            -G postfix -g postfix \
             postfix \
- && addgroup --system --gid 112 postdrop \
+ && addgroup postfix mail \
+ && addgroup -S -g 93 postdrop \
+ && adduser -S -u 92 -D -s /sbin/nologin \
+            -H -h /var/mail/domains \
+            -G postdrop -g vmail \
+            vmail \
+<? } else { ?>
+ && addgroup --system --gid 91 postfix \
+ && adduser --system --uid 90 --disabled-password \
+            --no-create-home --home /var/spool/postfix \
+            --ingroup postfix --gecos postfix \
+            postfix \
+ && adduser postfix mail \
+ && addgroup --system --gid 93 postdrop \
+ && adduser --system --uid 92 --disabled-password --shell /sbin/nologin \
+            --no-create-home --home /var/mail/domains \
+            --ingroup postdrop --gecos vmail \
+            vmail \
 <? } ?>
 
  # Install Postfix
