@@ -10,26 +10,19 @@ Postfix Docker Image
 
 ## Supported tags and respective `Dockerfile` links
 
-- `3.1.3`, `3.1`, `3`, `latest`
-  [(debian/Dockerfile)][101]
-- `3.1.3-alpine`, `3.1-alpine`, `3-alpine`, `alpine`
-  [(alpine/Dockerfile)][102]
+- `3.1.3`, `3.1`, `3`, `latest` [(debian/Dockerfile)][101]
+- `3.1.3-alpine`, `3.1-alpine`, `3-alpine`, `alpine` [(alpine/Dockerfile)][102]
 
 
 
 
 ## What is Postfix?
 
-[Postfix][13] is a free and open-source mail transfer agent (MTA) that routes
-and delivers electronic mail, intended as an alternative to [Sendmail MTA][12].
+[Postfix][13] is a free and open-source mail transfer agent (MTA) that routes and delivers electronic mail, intended as an alternative to [Sendmail MTA][12].
 
-It is [Wietse Venema][10]'s mail server that started life at [IBM research][11]
-as an alternative to the widely-used [Sendmail][12] program.
-Now at Google, Wietse continues to support Postfix.
+It is [Wietse Venema][10]'s mail server that started life at [IBM research][11] as an alternative to the widely-used [Sendmail][12] program. Now at Google, Wietse continues to support Postfix.
 
-Postfix attempts to be fast, easy to administer, and secure.
-The outside has a definite Sendmail-ish flavor, but the inside is completely
-different.
+Postfix attempts to be fast, easy to administer, and secure. The outside has a definite Sendmail-ish flavor, but the inside is completely different.
 
 > [www.postfix.org](http://www.postfix.org)
 
@@ -68,43 +61,29 @@ Concrete `X.Y.Z` version of Postfix.
 
 ### `alpine`
 
-This image is based on the popular [Alpine Linux project][1], available in
-[the alpine official image][2].
-Alpine Linux is much smaller than most distribution base images (~5MB), and
-thus leads to much slimmer images in general.
+This image is based on the popular [Alpine Linux project][1], available in [the alpine official image][2].
+Alpine Linux is much smaller than most distribution base images (~5MB), and thus leads to much slimmer images in general.
 
-This variant is highly recommended when final image size being as small
-as possible is desired. The main caveat to note is that it does use
-[musl libc][4] instead of [glibc and friends][5], so certain software
-might run into issues depending on the depth of their libc requirements.
-However, most software doesn't have an issue with this, so this variant
-is usually a very safe choice. See [this Hacker News comment thread][6] for more
-discussion of the issues that might arise and some pro/con comparisons
-of using Alpine-based images.
+This variant is highly recommended when final image size being as small as possible is desired. The main caveat to note is that it does use [musl libc][4] instead of [glibc and friends][5], so certain software might run into issues depending on the depth of their libc requirements. However, most software doesn't have an issue with this, so this variant is usually a very safe choice. See [this Hacker News comment thread][6] for more discussion of the issues that might arise and some pro/con comparisons of using Alpine-based images.
 
 
 
 
 ## Important tips
 
-As far as Postfix writes its logs only to `syslog`, the `syslogd` process runs
-inside container as second side-process and is supervised with
-[`s6` supervisor][20] provided by [`s6-overlay` project][21].
+As far as Postfix writes its logs only to `syslog`, the `syslogd` process runs inside container as second side-process and is supervised with [`s6` supervisor][20] provided by [`s6-overlay` project][21].
 
 
 ### Logs
 
-The `syslogd` process of this image is configured to write everything
-to `/dev/stdout`.
+The `syslogd` process of this image is configured to write everything to `/dev/stdout`.
 
-To change this behaviour just mount your own `/etc/syslog.conf` file with
-desired log rules.
+To change this behaviour just mount your own `/etc/syslog.conf` file with desired log rules.
 
 
 ### s6-overlay
 
-This image contains [`s6-overlay`][21] inside.
-So you may use all the [features it provides][22] if you need to.
+This image contains [`s6-overlay`][21] inside. So you may use all the [features it provides][22] if you need to.
 
 
 
@@ -120,11 +99,9 @@ Postfix Docker image is licensed under [MIT license][92].
 
 ## Issues
 
-We can't notice comments in the DockerHub so don't use them for reporting issue
-or asking question.
+We can't notice comments in the DockerHub so don't use them for reporting issue or asking question.
 
-If you have any problems with or questions about this image, please contact us
-through a [GitHub issue][3].
+If you have any problems with or questions about this image, please contact us through a [GitHub issue][3].
 
 
 
