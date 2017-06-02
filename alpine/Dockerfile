@@ -85,9 +85,17 @@ RUN apk update \
  && make \
 
  # Create Postfix user and groups
- && addgroup -g 111 -S postfix \
- && adduser -u 110 -S -H -D -G postfix postfix \
- && addgroup -g 112 -S postdrop \
+ && addgroup -S -g 91 postfix \
+ && adduser -S -u 90 -D \
+            -H -h /var/spool/postfix \
+            -G postfix -g postfix \
+            postfix \
+ && addgroup postfix mail \
+ && addgroup -S -g 93 postdrop \
+ && adduser -S -u 92 -D -s /sbin/nologin \
+            -H -h /var/mail/domains \
+            -G postdrop -g vmail \
+            vmail \
 
  # Install Postfix
  && make upgrade \
@@ -96,6 +104,11 @@ RUN apk update \
               /usr/sbin/postqueue \
  # Ensure spool dir has correct rights
  && install -d -o postfix -g postfix /var/spool/postfix \
+ # Fix removed directories in default configuration
+ && sed -i -e 's,^manpage_directory =.*,manpage_directory = no,' \
+           -e 's,^readme_directory =.*,readme_directory = no,' \
+           -e 's,^html_directory =.*,html_directory = no,' \
+        /etc/postfix/main.cf \
 
  # Cleanup unnecessary stuff
  && apk del .tool-deps .build-deps \

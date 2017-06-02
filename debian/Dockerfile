@@ -79,11 +79,17 @@ RUN apt-get update \
  && make \
 
  # Create Postfix user and groups
- && addgroup --system --gid 111 postfix \
- && adduser --system --no-create-home --disabled-password \
-            --uid 110 --ingroup postfix \
+ && addgroup --system --gid 91 postfix \
+ && adduser --system --uid 90 --disabled-password \
+            --no-create-home --home /var/spool/postfix \
+            --ingroup postfix --gecos postfix \
             postfix \
- && addgroup --system --gid 112 postdrop \
+ && adduser postfix mail \
+ && addgroup --system --gid 93 postdrop \
+ && adduser --system --uid 92 --disabled-password --shell /sbin/nologin \
+            --no-create-home --home /var/mail/domains \
+            --ingroup postdrop --gecos vmail \
+            vmail \
 
  # Install Postfix
  && make upgrade \
@@ -92,6 +98,11 @@ RUN apt-get update \
               /usr/sbin/postqueue \
  # Ensure spool dir has correct rights
  && install -d -o postfix -g postfix /var/spool/postfix \
+ # Fix removed directories in default configuration
+ && sed -i -e 's,^manpage_directory =.*,manpage_directory = no,' \
+           -e 's,^readme_directory =.*,readme_directory = no,' \
+           -e 's,^html_directory =.*,html_directory = no,' \
+        /etc/postfix/main.cf \
 
  # Cleanup unnecessary stuff
  && apt-get purge -y --auto-remove \

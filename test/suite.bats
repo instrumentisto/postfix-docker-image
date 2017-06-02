@@ -26,3 +26,18 @@
   run docker run --rm --entrypoint sh $IMAGE -c '/usr/lib/postfix/master -d -t'
   [ "$status" -eq 0 ]
 }
+
+
+@test "removed documentation dirs are fixed in default configuration" {
+  run docker run --rm --entrypoint sh $IMAGE -c \
+    'postconf | grep -Fx "manpage_directory = no"'
+  [ "$status" -eq 0 ]
+
+  run docker run --rm --entrypoint sh $IMAGE -c \
+    'postconf | grep -Fx "readme_directory = no"'
+  [ "$status" -eq 0 ]
+
+  run docker run --rm --entrypoint sh $IMAGE -c \
+    'postconf | grep -Fx "html_directory = no"'
+  [ "$status" -eq 0 ]
+}

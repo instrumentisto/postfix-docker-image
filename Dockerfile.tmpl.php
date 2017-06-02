@@ -191,6 +191,11 @@ RUN apt-get update \
               /usr/sbin/postqueue \
  # Ensure spool dir has correct rights
  && install -d -o postfix -g postfix /var/spool/postfix \
+ # Fix removed directories in default configuration
+ && sed -i -e 's,^manpage_directory =.*,manpage_directory = no,' \
+           -e 's,^readme_directory =.*,readme_directory = no,' \
+           -e 's,^html_directory =.*,html_directory = no,' \
+        /etc/postfix/main.cf \
 
  # Cleanup unnecessary stuff
 <? if ($isAlpineImage) { ?>
