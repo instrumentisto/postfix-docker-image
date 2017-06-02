@@ -104,7 +104,7 @@ desired log rules.
 ### s6-overlay
 
 This image contains [`s6-overlay`][21] inside.
-So you may use all the [features it provides][22] if you need to. 
+So you may use all the [features it provides][22] if you need to.
 
 
 
@@ -113,7 +113,7 @@ So you may use all the [features it provides][22] if you need to.
 
 Postfix itself is licensed under [IPL-1 license][91].
 
-Postfix Docker image is licensed under [MIT license][92]. 
+Postfix Docker image is licensed under [MIT license][92].
 
 
 
