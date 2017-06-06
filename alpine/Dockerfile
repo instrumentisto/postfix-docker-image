@@ -109,6 +109,9 @@ RUN apk update \
            -e 's,^readme_directory =.*,readme_directory = no,' \
            -e 's,^html_directory =.*,html_directory = no,' \
         /etc/postfix/main.cf \
+ # Prepare directories for drop-in configuration files
+ && mkdir -p /etc/postfix/main.cf.d \
+ && mkdir -p /etc/postfix/master.cf.d \
 
  # Cleanup unnecessary stuff
  && apk del .tool-deps .build-deps \
@@ -133,7 +136,8 @@ ENV S6_CMD_WAIT_FOR_SERVICES=1
 
 COPY rootfs /
 
-RUN chmod +x /etc/services.d/*/run
+RUN chmod +x /etc/services.d/*/run \
+             /etc/cont-init.d/*
 
 
 EXPOSE 25 465 587

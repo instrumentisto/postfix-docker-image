@@ -33,9 +33,49 @@ Postfix attempts to be fast, easy to administer, and secure. The outside has a d
 
 ## How to use this image
 
-To run Postfix just mount your configuration files: 
+To run Postfix just mount your configuration files and start the container: 
 ```bash
 docker run -d -p 25:25 -v /my/main.cf:/etc/postfix/main.cf instrumentisto/postfix
+```
+
+
+### Configuration
+
+To configure Postfix you may use one of the following ways (but __not both at the same time__):
+
+1.  Drop-in files.  
+    Put your configuration files (must end with `.cf`) in `/etc/postfix/main.cf.d/` and `/etc/postfix/master.cf.d/` directories. These files will be applied to default Postfix configuration when container starts.
+    
+    ```bash
+    docker run -d -p 25:25 \
+               -v /my/main.cf:/etc/postfix/main.cf.d/10-custom.cf:ro \
+               -v /my/master.cf:/etc/postfix/master.cf.d/10-custom.cf:ro \
+           instrumentisto/postfix
+    ```
+    
+    This way is convenient if you need only few changes to default configuration, or you want to keep different parts of configuration in different files.
+
+2.  Specify whole configuration.  
+    Put your configuration files (`main.cf` and `master.cf`) in `/etc/postfix/` directory, so fully replace the default configuration files provided by image.
+    
+    ```bash
+    docker run -d -p 25:25 \
+               -v /my/main.cf:/etc/postfix/main.cf:ro \
+               -v /my/master.cf:/etc/postfix/master.cf:ro \
+           instrumentisto/postfix
+    ```
+    
+    This way is convenient when it's easier to specify the whole configuration at once, rather than reconfigure default options.
+
+#### Default configuration
+
+To see default Postfix configuration of this Docker image just run:
+```bash
+# for main.cf
+docker run --rm instrumentisto/postfix postconf
+
+# for master.cf
+docker run --rm instrumentisto/postfix postconf -M
 ```
 
 

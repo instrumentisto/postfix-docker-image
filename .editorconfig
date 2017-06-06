@@ -21,10 +21,14 @@ indent_size = 4
 indent_style = tab
 indent_size = 4
 
-[{*.bats,post_push,post_push.tmpl.php}]
+[{*.bats,*.sh,post_push,post_push.tmpl.php}]
 indent_style = space
 indent_size = 2
 
 [*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.cf]
 indent_style = space
 indent_size = 2
