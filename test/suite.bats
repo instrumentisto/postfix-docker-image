@@ -80,3 +80,33 @@
         "policyd-spf unix -       n       n       -       0       spawn user=policyd-spf argv=/usr/bin/policyd-spf"'
   [ "$status" -eq 0 ]
 }
+
+
+@test "only A grade TLS ciphers are used" {
+  run docker rm -f test-postfix
+  run docker run -d --name test-postfix -p 25:25 $IMAGE
+  [ "$status" -eq 0 ]
+  run sleep 10
+
+  run docker run --rm -i --link test-postfix:postfix \
+    --entrypoint sh instrumentisto/nmap -c \
+      'nmap --script ssl-enum-ciphers -p 25 postfix | grep "least strength: A"'
+  [ "$status" -eq 0 ]
+
+  run docker rm -f test-postfix
+}
+
+@test "nmap produces no warnings on TLS ciphers verifying" {
+  run docker rm -f test-postfix
+  run docker run -d --name test-postfix -p 25:25 $IMAGE
+  [ "$status" -eq 0 ]
+  run sleep 5
+
+  run docker run --rm -i --link test-postfix:postfix \
+    --entrypoint sh instrumentisto/nmap -c \
+      'nmap --script ssl-enum-ciphers -p 25 postfix | grep "warnings" | wc -l'
+  [ "$status" -eq 0 ]
+  [ "$output" == "0" ]
+
+  run docker rm -f test-postfix
+}
