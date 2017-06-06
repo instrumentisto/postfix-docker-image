@@ -43,13 +43,13 @@ RUN apt-get update \
  # Install Postfix dependencies
 <? if ($isAlpineImage) { ?>
  && apk add --no-cache \
-        pcre \
+        pcre icu-libs \
         db libpq mariadb-client-libs sqlite-libs \
         libsasl \
         libldap \
 <? } else { ?>
  && apt-get install -y --no-install-recommends --no-install-suggests \
-            libpcre3 \
+            libpcre3 libicu57 \
             libdb5.3 libpq5 libmariadbclient18 libsqlite3-0 \
             libsasl2-2 \
             libldap-2.4 \
@@ -72,14 +72,14 @@ RUN apt-get update \
  && apk add --no-cache --virtual .build-deps \
         libressl-dev \
         linux-headers \
-        pcre-dev \
+        pcre-dev icu-dev \
         db-dev postgresql-dev mariadb-dev sqlite-dev \
         cyrus-sasl-dev \
         openldap-dev \
 <? } else { ?>
  && buildDeps=" \
         libssl-dev \
-        libpcre3-dev \
+        libpcre3-dev libicu-dev \
         libdb-dev libpq-dev libmariadbclient-dev libsqlite3-dev \
         libsasl2-dev \
         libldap2-dev \

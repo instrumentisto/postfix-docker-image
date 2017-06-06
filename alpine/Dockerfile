@@ -17,7 +17,7 @@ RUN apk update \
 
  # Install Postfix dependencies
  && apk add --no-cache \
-        pcre \
+        pcre icu-libs \
         db libpq mariadb-client-libs sqlite-libs \
         libsasl \
         libldap \
@@ -30,7 +30,7 @@ RUN apk update \
  && apk add --no-cache --virtual .build-deps \
         libressl-dev \
         linux-headers \
-        pcre-dev \
+        pcre-dev icu-dev \
         db-dev postgresql-dev mariadb-dev sqlite-dev \
         cyrus-sasl-dev \
         openldap-dev \
