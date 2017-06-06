@@ -163,7 +163,8 @@ RUN apk add --update --no-cache --virtual .tool-deps \
  && rm -rf /var/cache/apk/* \
            /tmp/*
 
-ENV S6_CMD_WAIT_FOR_SERVICES=1
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    S6_CMD_WAIT_FOR_SERVICES=1
 
 
 COPY rootfs /

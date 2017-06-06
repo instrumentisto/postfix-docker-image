@@ -287,7 +287,8 @@ RUN apt-get update \
 <? } ?>
            /tmp/*
 
-ENV S6_CMD_WAIT_FOR_SERVICES=1
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    S6_CMD_WAIT_FOR_SERVICES=1
 
 
 COPY rootfs /
