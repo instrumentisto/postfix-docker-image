@@ -43,7 +43,7 @@ docker run -d -p 25:25 -v /my/main.cf:/etc/postfix/main.cf instrumentisto/postfi
 
 To configure Postfix you may use one of the following ways (but __not both at the same time__):
 
-1.  Drop-in files.  
+1.  __Drop-in files__.  
     Put your configuration files (must end with `.cf`) in `/etc/postfix/main.cf.d/` and `/etc/postfix/master.cf.d/` directories. These files will be applied to default Postfix configuration when container starts.
     
     ```bash
@@ -55,7 +55,7 @@ To configure Postfix you may use one of the following ways (but __not both at th
     
     This way is convenient if you need only few changes to default configuration, or you want to keep different parts of configuration in different files.
 
-2.  Specify whole configuration.  
+2.  Specify __whole configuration__.  
     Put your configuration files (`main.cf` and `master.cf`) in `/etc/postfix/` directory, so fully replace the default configuration files provided by image.
     
     ```bash
