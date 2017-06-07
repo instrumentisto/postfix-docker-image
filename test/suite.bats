@@ -88,6 +88,7 @@
                  | awk '{ print \$5 }' \
                  | tr -d '\n' \
                  | grep -xE '^y+$'"
+  [ "$status" -eq 0 ]
 }
 
 
