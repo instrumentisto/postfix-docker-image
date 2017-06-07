@@ -12,6 +12,7 @@ MAINTAINER Instrumentisto Team <developer@instrumentisto.com>
 RUN apk update \
  && apk upgrade \
  && apk add --no-cache \
+        inetutils-syslogd \
         ca-certificates \
  && update-ca-certificates \
 
@@ -112,6 +113,12 @@ RUN apk update \
  # Prepare directories for drop-in configuration files
  && install -d /etc/postfix/main.cf.d \
  && install -d /etc/postfix/master.cf.d \
+ # Prepare syslog socket directory for chrooted processes
+ && install -d /var/spool/postfix/dev \
+ # Chroot Postfix services by default
+ && sed -i -E 's/^(#?(smtp[ds]?|dnsblog|tlsproxy|submission|628|pickup|cleanup|qmgr|tlsmgr|rewrite|bounce|defer|trace|verify|flush|relay|showq|error|retry|discard|lmtp|anvil|scache)[ ]+\
+                     (inet|unix|pass)[ ]+[ny-][ ]+[ny-][ ]+)[n-]/\1y/' \
+        /etc/postfix/master.cf \
  # Generate default TLS credentials
  && install -d /etc/ssl/postfix \
  && openssl req -new -x509 -nodes -days 365 \
@@ -127,12 +134,12 @@ RUN apk update \
         \n#\
         \ntls_ssl_options = NO_COMPRESSION\
         \ntls_high_cipherlist = ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256\
-        \n\n\
+        \n\
         \n# SMTP TLS PARAMETERS (outgoing connections)\
         \n#\
         \nsmtp_tls_security_level = may\
         \nsmtp_tls_CApath = /etc/ssl/certs\
-        \n\n\
+        \n\
         \n# SMTPD TLS PARAMETERS (incoming connections)\
         \n#\
         \nsmtpd_tls_security_level = may\
@@ -148,6 +155,8 @@ RUN apk update \
  # Cleanup unnecessary stuff
  && apk del .tool-deps .build-deps \
  && rm -rf /var/cache/apk/* \
+           /sbin/setup-inetutils-syslogd \
+           /etc/*/inetutils-syslogd \
            /tmp/*
 
 

@@ -59,7 +59,7 @@
   run docker run --rm \
     -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
       $IMAGE sh -c 'postconf -M | grep -Fx \
-        "verify     unix  -       -       y       -       1       verify"'
+        "verify     unix  -       -       n       -       1       verify"'
   [ "$status" -eq 0 ]
 
   run docker run --rm \
@@ -79,6 +79,15 @@
       $IMAGE sh -c 'postconf -M | grep -Fx \
         "policyd-spf unix -       n       n       -       0       spawn user=policyd-spf argv=/usr/bin/policyd-spf"'
   [ "$status" -eq 0 ]
+}
+
+
+@test "chroot is used for all postfix services that support it" {
+  run docker run --rm --entrypoint sh $IMAGE -c \
+    "postconf -M | grep -vE '^(proxymap|proxywrite|local|virtual)' \
+                 | awk '{ print \$5 }' \
+                 | tr -d '\n' \
+                 | grep -xE '^y+$'"
 }
 
 
