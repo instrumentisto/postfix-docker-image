@@ -1,3 +1,8 @@
 #!/bin/sh
 
+# Make sure that socket directory exists
+# in case /var/spool/postfix/ is a mounted volume.
+mkdir -p /var/spool/postfix/dev/
+
+# Start syslogd daemon with additional listener in Postfix chroot dir.
 exec syslogd -n -a /var/spool/postfix/dev/log
