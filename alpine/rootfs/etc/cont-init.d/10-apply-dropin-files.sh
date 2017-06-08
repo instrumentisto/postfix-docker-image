@@ -31,7 +31,7 @@ for file in /etc/postfix/master.cf.d/*.postconf; do
   while read line; do
     # All valid master.cf postconf instructions start with one of: -M, -F, -P.
     if (printf "%s" "$line" | grep -qE '^-[MFP] '); then
-      postconf "$line"
+      postconf "${line:0:2}" "${line:3}"
     fi
   done < "$file"
 done
