@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 
-@test "post_push hook is up-to-date" {
+@test "post_push: hook is up-to-date" {
   run sh -c "cat Makefile | grep $DOCKERFILE: \
                           | cut -d ':' -f 2 \
                           | cut -d '\\' -f 1 \
@@ -22,13 +22,13 @@
 }
 
 
-@test "postfix runs ok" {
+@test "postfix: runs ok" {
   run docker run --rm --entrypoint sh $IMAGE -c '/usr/lib/postfix/master -d -t'
   [ "$status" -eq 0 ]
 }
 
 
-@test "removed documentation dirs are fixed in default configuration" {
+@test "main.cf: documentation dirs are fixed in default configuration" {
   run docker run --rm --entrypoint sh $IMAGE -c \
     'postconf | grep -Fx "manpage_directory = no"'
   [ "$status" -eq 0 ]
@@ -43,37 +43,46 @@
 }
 
 
-@test "main.cf drop-in files are applied" {
+@test "main.cf drop-in: readme_directory is changed correctly" {
   run docker run --rm \
     -v $(pwd)/test/resources/main.cf.d:/etc/postfix/main.cf.d:ro \
       $IMAGE sh -c 'postconf | grep -Fx "readme_directory = /some/dir"'
   [ "$status" -eq 0 ]
+}
 
+@test "main.cf drop-in: data_directory is changed correctly" {
   run docker run --rm \
     -v $(pwd)/test/resources/main.cf.d:/etc/postfix/main.cf.d:ro \
       $IMAGE sh -c 'postconf | grep -Fx "data_directory = /data/my/postfix"'
   [ "$status" -eq 0 ]
 }
 
-@test "master.cf drop-in files are applied" {
+
+@test "master.cf drop-in: verify/unix service is changed correctly" {
   run docker run --rm \
     -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
       $IMAGE sh -c 'postconf -M | grep -Fx \
         "verify     unix  -       -       n       -       1       verify"'
   [ "$status" -eq 0 ]
+}
 
+@test "master.cf drop-in: smtp-amavis/unix service is added correctly" {
   run docker run --rm \
     -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
       $IMAGE sh -c 'postconf -M | grep -Fx \
         "smtp-amavis unix -       -       n       -       2       smtp -o smtp_data_done_timeout=1200 -o smtp_send_xforward_command=yes -o disable_dns_lookups=yes -o max_use=20 -o smtp_tls_security_level=none"'
   [ "$status" -eq 0 ]
+}
 
+@test "master.cf drop-in: 127.0.0.1:10025/inet service is added correctly" {
   run docker run --rm \
     -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
       $IMAGE sh -c 'postconf -M | grep -Fx \
         "127.0.0.1:10025 inet n   -       n       -       -       smtpd -o content_filter= -o local_recipient_maps="'
   [ "$status" -eq 0 ]
+}
 
+@test "master.cf drop-in: policyd-spf/unix service is added correctly" {
   run docker run --rm \
     -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
       $IMAGE sh -c 'postconf -M | grep -Fx \
@@ -81,8 +90,38 @@
   [ "$status" -eq 0 ]
 }
 
+@test "master.cf drop-in: pickup/unix service is replaced with pickup/fifo" {
+  # pickup/fifo service is added
+  run docker run --rm \
+    -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
+      $IMAGE sh -c 'postconf -M | grep -Fx \
+        "pickup     fifo  n       -       y       60      1       pickup -o content_filter= -o receive_override_options=no_header_body_checks"'
+  [ "$status" -eq 0 ]
 
-@test "chroot is used for all postfix services that support it" {
+  # pickup/unix service is removed
+  run docker run --rm \
+    -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
+      $IMAGE sh -c 'test $(postconf -M | grep pickup | wc -l) -eq 1'
+  [ "$status" -eq 0 ]
+}
+
+@test "master.cf drop-in: lmtp/unix service is changed correctly" {
+  # lmtp/unix service is unchrooted
+  run docker run --rm \
+    -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
+      $IMAGE sh -c 'postconf -M | grep -Fx \
+        "lmtp       unix  -       -       n       -       -       lmtp"'
+  [ "$status" -eq 0 ]
+
+  # lmtp/unix service is defined only once
+  run docker run --rm \
+    -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
+      $IMAGE sh -c 'test $(postconf -M | grep lmtp | wc -l) -eq 1'
+  [ "$status" -eq 0 ]
+}
+
+
+@test "chroot: used by default for all postfix services that support it" {
   run docker run --rm --entrypoint sh $IMAGE -c \
     "postconf -M | grep -vE '^(proxymap|proxywrite|local|virtual)' \
                  | awk '{ print \$5 }' \
@@ -92,7 +131,7 @@
 }
 
 
-@test "only A grade TLS ciphers are used" {
+@test "tls: only A grade ciphers are used" {
   run docker rm -f test-postfix
   run docker run -d --name test-postfix -p 25:25 $IMAGE
   [ "$status" -eq 0 ]
@@ -106,7 +145,7 @@
   run docker rm -f test-postfix
 }
 
-@test "nmap produces no warnings on TLS ciphers verifying" {
+@test "tls: nmap produces no warnings on ciphers verifying" {
   run docker rm -f test-postfix
   run docker run -d --name test-postfix -p 25:25 $IMAGE
   [ "$status" -eq 0 ]
