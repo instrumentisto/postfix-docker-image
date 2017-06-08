@@ -7,8 +7,12 @@ set -e
 # http://www.postfix.org/postconf.5.html
 for file in /etc/postfix/main.cf.d/*.cf; do
   [ -f "$file" ] || continue
-  printf "\n\n#\n# %s\n#\n" "$file" >> /etc/postfix/main.cf
-  cat "$file" >> /etc/postfix/main.cf
+  while read line; do
+    # All valid Postfix main.cf options start with a lower case letter.
+    if (printf "%s" "$line" | grep -qE '^[a-z]'); then
+      postconf -e "$line"
+    fi
+  done < "$file"
 done
 
 
