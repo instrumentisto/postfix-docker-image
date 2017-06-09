@@ -36,15 +36,15 @@
 
 @test "main.cf: documentation dirs are fixed in default configuration" {
   run docker run --rm --entrypoint sh $IMAGE -c \
-    'postconf | grep -Fx "manpage_directory = no"'
+    'postconf | grep -Fx "manpage_directory = /dev/null"'
   [ "$status" -eq 0 ]
 
   run docker run --rm --entrypoint sh $IMAGE -c \
-    'postconf | grep -Fx "readme_directory = no"'
+    'postconf | grep -Fx "readme_directory = /dev/null"'
   [ "$status" -eq 0 ]
 
   run docker run --rm --entrypoint sh $IMAGE -c \
-    'postconf | grep -Fx "html_directory = no"'
+    'postconf | grep -Fx "html_directory = /dev/null"'
   [ "$status" -eq 0 ]
 }
 
@@ -163,4 +163,11 @@
   [ "$output" == "0" ]
 
   run docker rm -f test-postfix
+}
+
+
+@test "volume: postfix queue dirs are recreated for empty volumes" {
+  run docker run --rm --tmpfs /var/spool/postfix/ $IMAGE sh -c \
+    'test "$(ls /var/spool/postfix/ | tr -d "\n ")" = "activebouncecorruptdeferdeferredflushholdincomingmaildroppidprivatepublicsavedtrace"'
+  [ "$status" -eq 0 ]
 }
