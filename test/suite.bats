@@ -62,7 +62,7 @@
   run docker run --rm \
     -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
       $IMAGE sh -c 'postconf -M | grep -Fx \
-        "verify     unix  -       -       n       -       1       verify"'
+        "verify     unix  -       -       y       -       1       verify"'
   [ "$status" -eq 0 ]
 }
 
@@ -95,7 +95,7 @@
   run docker run --rm \
     -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
       $IMAGE sh -c 'postconf -M | grep -Fx \
-        "pickup     fifo  n       -       y       60      1       pickup -o content_filter= -o receive_override_options=no_header_body_checks"'
+        "pickup     fifo  n       -       n       60      1       pickup -o content_filter= -o receive_override_options=no_header_body_checks"'
   [ "$status" -eq 0 ]
 
   # pickup/unix service is removed
@@ -106,11 +106,11 @@
 }
 
 @test "master.cf drop-in: lmtp/unix service is changed correctly" {
-  # lmtp/unix service is unchrooted
+  # lmtp/unix service is chrooted
   run docker run --rm \
     -v $(pwd)/test/resources/master.cf.d:/etc/postfix/master.cf.d:ro \
       $IMAGE sh -c 'postconf -M | grep -Fx \
-        "lmtp       unix  -       -       n       -       -       lmtp"'
+        "lmtp       unix  -       -       y       -       -       lmtp"'
   [ "$status" -eq 0 ]
 
   # lmtp/unix service is defined only once
@@ -121,12 +121,11 @@
 }
 
 
-@test "chroot: used by default for all postfix services that support it" {
+@test "chroot: nothing is chrooted by default" {
   run docker run --rm --entrypoint sh $IMAGE -c \
-    "postconf -M | grep -vE '^(proxymap|proxywrite|local|virtual)' \
-                 | awk '{ print \$5 }' \
+    "postconf -M | awk '{ print \$5 }' \
                  | tr -d '\n' \
-                 | grep -xE '^y+$'"
+                 | grep -xE '^n+$'"
   [ "$status" -eq 0 ]
 }
 

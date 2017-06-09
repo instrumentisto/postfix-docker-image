@@ -106,11 +106,6 @@ RUN apt-get update \
  # Prepare directories for drop-in configuration files
  && install -d /etc/postfix/main.cf.d \
  && install -d /etc/postfix/master.cf.d \
- # Prepare syslog socket directory for chrooted processes
- && install -d /var/spool/postfix/dev \
- # Chroot Postfix services by default
- && sed -i -E 's/^(#?(smtp[ds]?|dnsblog|tlsproxy|submission|628|pickup|cleanup|qmgr|tlsmgr|rewrite|bounce|defer|trace|verify|flush|relay|showq|error|retry|discard|lmtp|anvil|scache)[ ]+(inet|unix|pass)[ ]+[ny-][ ]+[ny-][ ]+)[n-]/\1y/' \
-        /etc/postfix/master.cf \
  # Generate default TLS credentials
  && install -d /etc/ssl/postfix \
  && openssl req -new -x509 -nodes -days 365 \
