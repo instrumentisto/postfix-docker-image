@@ -22,6 +22,12 @@
 }
 
 
+@test "syslogd: runs ok" {
+  run docker run --rm --entrypoint sh $IMAGE -c 'syslogd --help'
+  [ "$status" -eq 0 ]
+}
+
+
 @test "postfix: runs ok" {
   run docker run --rm --entrypoint sh $IMAGE -c '/usr/lib/postfix/master -d -t'
   [ "$status" -eq 0 ]
