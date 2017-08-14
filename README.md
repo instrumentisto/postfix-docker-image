@@ -1,9 +1,7 @@
 Postfix Docker Image
 ====================
 
-[![Build Status](https://travis-ci.org/instrumentisto/postfix-docker-image.svg?branch=master)](https://travis-ci.org/instrumentisto/postfix-docker-image)
-[![Docker Pulls](https://img.shields.io/docker/pulls/instrumentisto/postfix.svg)](https://hub.docker.com/r/instrumentisto/postfix)
-[![Uses](https://img.shields.io/badge/uses-s6--overlay-blue.svg)][21]
+[![Build Status](https://travis-ci.org/instrumentisto/postfix-docker-image.svg?branch=master)](https://travis-ci.org/instrumentisto/postfix-docker-image) [![Docker Pulls](https://img.shields.io/docker/pulls/instrumentisto/postfix.svg)](https://hub.docker.com/r/instrumentisto/postfix) [![Uses](https://img.shields.io/badge/uses-s6--overlay-blue.svg)][21]
 
 
 
