@@ -15,21 +15,21 @@ RUN apt-get update \
             inetutils-syslogd \
             ca-certificates \
  && update-ca-certificates \
-
+    \
  # Install Postfix dependencies
  && apt-get install -y --no-install-recommends --no-install-suggests \
             libpcre3 libicu57 \
             libdb5.3 libpq5 libmariadbclient18 libsqlite3-0 \
             libsasl2-2 \
             libldap-2.4 \
-
+    \
  # Install tools for building
  && toolDeps=" \
         curl make gcc g++ libc-dev \
     " \
  && apt-get install -y --no-install-recommends --no-install-suggests \
             $toolDeps \
-
+    \
  # Install Postfix build dependencies
  && buildDeps=" \
         libssl-dev \
@@ -40,7 +40,7 @@ RUN apt-get update \
     " \
  && apt-get install -y --no-install-recommends --no-install-suggests \
             $buildDeps \
-
+    \
  # Download and prepare Postfix sources
  && curl -fL -o /tmp/postfix.tar.gz \
          http://cdn.postfix.johnriley.me/mirrors/postfix-release/official/postfix-3.1.3.tar.gz \
@@ -49,7 +49,7 @@ RUN apt-get update \
  && tar -xzf /tmp/postfix.tar.gz -C /tmp/ \
  && cd /tmp/postfix-* \
  && sed -i -e "s:/usr/local/:/usr/:g" conf/master.cf \
-
+    \
  # Build Postfix from sources
  && make makefiles \
          CCARGS="-DHAS_SHL_LOAD -DUSE_TLS \
@@ -77,7 +77,7 @@ RUN apt-get update \
          readme_directory=/tmp/readme \
          html_directory=/tmp/html \
  && make \
-
+    \
  # Create Postfix user and groups
  && addgroup --system --gid 91 postfix \
  && adduser --system --uid 90 --disabled-password \
@@ -90,7 +90,7 @@ RUN apt-get update \
             --no-create-home --home /var/mail/domains \
             --ingroup postdrop --gecos vmail \
             vmail \
-
+    \
  # Install Postfix
  && make upgrade \
  # Always execute these binaries under postdrop group
@@ -138,7 +138,7 @@ RUN apt-get update \
         \nsmtpd_tls_cert_file = /etc/ssl/postfix/server.crt\
         \nsmtpd_tls_key_file = /etc/ssl/postfix/server.key\
     " >> /etc/postfix/main.cf \
-
+    \
  # Cleanup unnecessary stuff
  && apt-get purge -y --auto-remove \
                   -o APT::AutoRemove::RecommendsImportant=false \
@@ -164,7 +164,7 @@ RUN apt-get update \
  && rm -rf /tmp/s6-overlay/bin \
            /tmp/s6-overlay/usr/bin/execlineb \
  && cp -rf /tmp/s6-overlay/* / \
-
+    \
  # Cleanup unnecessary stuff
  && apt-get purge -y --auto-remove \
                   -o APT::AutoRemove::RecommendsImportant=false \

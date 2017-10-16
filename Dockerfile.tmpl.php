@@ -39,7 +39,7 @@ RUN apt-get update \
             ca-certificates \
 <? } ?>
  && update-ca-certificates \
-
+    \
  # Install Postfix dependencies
 <? if ($isAlpineImage) { ?>
  && apk add --no-cache \
@@ -54,7 +54,7 @@ RUN apt-get update \
             libsasl2-2 \
             libldap-2.4 \
 <? } ?>
-
+    \
  # Install tools for building
 <? if ($isAlpineImage) { ?>
  && apk add --no-cache --virtual .tool-deps \
@@ -66,7 +66,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --no-install-suggests \
             $toolDeps \
 <? } ?>
-
+    \
  # Install Postfix build dependencies
 <? if ($isAlpineImage) { ?>
  && apk add --no-cache --virtual .build-deps \
@@ -87,7 +87,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --no-install-suggests \
             $buildDeps \
 <? } ?>
-
+    \
  # Download and prepare Postfix sources
  && curl -fL -o /tmp/postfix.tar.gz \
          http://cdn.postfix.johnriley.me/mirrors/postfix-release/official/postfix-<?= $PostfixVer; ?>.tar.gz \
@@ -110,7 +110,7 @@ RUN apt-get update \
         src/util/sys_defs.h \
 <? } ?>
  && sed -i -e "s:/usr/local/:/usr/:g" conf/master.cf \
-
+    \
  # Build Postfix from sources
  && make makefiles \
 <? if ($isAlpineImage) { ?>
@@ -156,7 +156,7 @@ RUN apt-get update \
          readme_directory=/tmp/readme \
          html_directory=/tmp/html \
  && make \
-
+    \
  # Create Postfix user and groups
 <? if ($isAlpineImage) { ?>
  && addgroup -S -g 91 postfix \
@@ -183,7 +183,7 @@ RUN apt-get update \
             --ingroup postdrop --gecos vmail \
             vmail \
 <? } ?>
-
+    \
  # Install Postfix
  && make upgrade \
  # Always execute these binaries under postdrop group
@@ -235,7 +235,7 @@ RUN apt-get update \
         \nsmtpd_tls_cert_file = /etc/ssl/postfix/server.crt\
         \nsmtpd_tls_key_file = /etc/ssl/postfix/server.key\
     " >> /etc/postfix/main.cf \
-
+    \
  # Cleanup unnecessary stuff
 <? if ($isAlpineImage) { ?>
  && apk del .tool-deps .build-deps \
@@ -275,7 +275,7 @@ RUN apt-get update \
            /tmp/s6-overlay/usr/bin/execlineb \
  && cp -rf /tmp/s6-overlay/* / \
 <? } ?>
-
+    \
  # Cleanup unnecessary stuff
 <? if ($isAlpineImage) { ?>
  && apk del .tool-deps \

@@ -14,18 +14,18 @@ RUN apk update \
  && apk add --no-cache \
         ca-certificates \
  && update-ca-certificates \
-
+    \
  # Install Postfix dependencies
  && apk add --no-cache \
         pcre icu-libs \
         db libpq mariadb-client-libs sqlite-libs \
         libsasl \
         libldap \
-
+    \
  # Install tools for building
  && apk add --no-cache --virtual .tool-deps \
         curl coreutils autoconf g++ libtool make libressl \
-
+    \
  # Install Postfix build dependencies
  && apk add --no-cache --virtual .build-deps \
         libressl-dev \
@@ -34,7 +34,7 @@ RUN apk update \
         db-dev postgresql-dev mariadb-dev sqlite-dev \
         cyrus-sasl-dev \
         openldap-dev \
-
+    \
  # Download and prepare Postfix sources
  && curl -fL -o /tmp/postfix.tar.gz \
          http://cdn.postfix.johnriley.me/mirrors/postfix-release/official/postfix-3.1.3.tar.gz \
@@ -55,7 +55,7 @@ RUN apk update \
            -e "/^#define ALIAS_DB_MAP/s|:/etc/aliases|:/etc/postfix/aliases|" \
         src/util/sys_defs.h \
  && sed -i -e "s:/usr/local/:/usr/:g" conf/master.cf \
-
+    \
  # Build Postfix from sources
  && make makefiles \
          CCARGS="-DHAS_SHL_LOAD -DUSE_TLS \
@@ -83,7 +83,7 @@ RUN apk update \
          readme_directory=/tmp/readme \
          html_directory=/tmp/html \
  && make \
-
+    \
  # Create Postfix user and groups
  && addgroup -S -g 91 postfix \
  && adduser -S -u 90 -D \
@@ -96,7 +96,7 @@ RUN apk update \
             -H -h /var/mail/domains \
             -G postdrop -g vmail \
             vmail \
-
+    \
  # Install Postfix
  && make upgrade \
  # Always execute these binaries under postdrop group
@@ -144,7 +144,7 @@ RUN apk update \
         \nsmtpd_tls_cert_file = /etc/ssl/postfix/server.crt\
         \nsmtpd_tls_key_file = /etc/ssl/postfix/server.key\
     " >> /etc/postfix/main.cf \
-
+    \
  # Cleanup unnecessary stuff
  && apk del .tool-deps .build-deps \
  && rm -rf /var/cache/apk/* \
@@ -157,7 +157,7 @@ RUN apk add --update --no-cache --virtual .tool-deps \
  && curl -fL -o /tmp/s6-overlay.tar.gz \
          https://github.com/just-containers/s6-overlay/releases/download/v1.21.0.0/s6-overlay-amd64.tar.gz \
  && tar -xzf /tmp/s6-overlay.tar.gz -C / \
-
+    \
  # Cleanup unnecessary stuff
  && apk del .tool-deps \
  && rm -rf /var/cache/apk/* \
