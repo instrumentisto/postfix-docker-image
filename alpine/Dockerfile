@@ -155,7 +155,7 @@ RUN apk update \
 RUN apk add --update --no-cache --virtual .tool-deps \
         curl \
  && curl -fL -o /tmp/s6-overlay.tar.gz \
-         https://github.com/just-containers/s6-overlay/releases/download/v1.21.2.0/s6-overlay-amd64.tar.gz \
+         https://github.com/just-containers/s6-overlay/releases/download/v1.21.2.1/s6-overlay-amd64.tar.gz \
  && tar -xzf /tmp/s6-overlay.tar.gz -C / \
     \
  # Cleanup unnecessary stuff
