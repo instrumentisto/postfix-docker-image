@@ -25,8 +25,6 @@ VERSION ?=  $(word 1,$(subst $(comma), ,\
                      $(word 2,$(subst :, ,$(word 1,$(ALL_IMAGES))))))
 TAGS ?= $(word 2,$(subst :, ,$(word 1,$(ALL_IMAGES))))
 
-no-cache ?= no
-
 
 comma := ,
 eq = $(if $(or $(1),$(2)),$(and $(findstring $(1),$(2)),\
@@ -37,7 +35,9 @@ eq = $(if $(or $(1),$(2)),$(and $(findstring $(1),$(2)),\
 # Build Docker image.
 #
 # Usage:
-#	make image [no-cache=(yes|no)] [DOCKERFILE=] [VERSION=]
+#	make image [DOCKERFILE=<dockerfile-dir>]
+#	           [VERSION=<image-version>]
+#	           [no-cache=(no|yes)]
 
 no-cache-arg = $(if $(call eq,$(no-cache),yes),--no-cache,)
 
@@ -49,12 +49,11 @@ image:
 # Tag Docker image with given tags.
 #
 # Usage:
-#	make tags [VERSION=] [TAGS=t1,t2,...]
-
-parsed-tags = $(subst $(comma), $(space), $(TAGS))
+#	make tags [VERSION=<image-version>]
+#	          [TAGS=<docker-tag-1>[,<docker-tag-2>...]]
 
 tags:
-	(set -e ; $(foreach tag, $(parsed-tags), \
+	(set -e ; $(foreach tag, $(subst $(comma), ,$(TAGS)), \
 		docker tag $(IMAGE_NAME):$(VERSION) $(IMAGE_NAME):$(tag) ; \
 	))
 
@@ -63,10 +62,10 @@ tags:
 # Manually push Docker images to Docker Hub.
 #
 # Usage:
-#	make push [TAGS=t1,t2,...]
+#	make push [TAGS=<docker-tag-1>[,<docker-tag-2>...]]
 
 push:
-	(set -e ; $(foreach tag, $(parsed-tags), \
+	(set -e ; $(foreach tag, $(subst $(comma), ,$(TAGS)), \
 		docker push $(IMAGE_NAME):$(tag) ; \
 	))
 
@@ -75,7 +74,9 @@ push:
 # Make manual release of Docker images to Docker Hub.
 #
 # Usage:
-#	make release [no-cache=(yes|no)] [DOCKERFILE=] [VERSION=] [TAGS=t1,t2,...]
+#	make release [DOCKERFILE=<dockerfile-dir>] [no-cache=(no|yes)]
+#	             [VERSION=<image-version>]
+#	             [TAGS=<docker-tag-1>[,<docker-tag-2>...]]
 
 release: | image tags push
 
@@ -84,7 +85,7 @@ release: | image tags push
 # Make manual release of all supported Docker images to Docker Hub.
 #
 # Usage:
-#	make release-all [no-cache=(yes|no)]
+#	make release-all [no-cache=(no|yes)]
 
 release-all:
 	(set -e ; $(foreach img,$(ALL_IMAGES), \
@@ -100,7 +101,8 @@ release-all:
 # Generate Docker image sources.
 #
 # Usage:
-#	make src [DOCKERFILE=] [VERSION=] [TAGS=t1,t2,...]
+#	make src [DOCKERFILE=<dockerfile-dir>]
+#	         [TAGS=<docker-tag-1>[,<docker-tag-2>...]]
 
 src: dockerfile post-push-hook
 
@@ -125,7 +127,7 @@ src-all:
 # Generate Dockerfile from template.
 #
 # Usage:
-#	make dockerfile [DOCKERFILE=]
+#	make dockerfile [DOCKERFILE=<dockerfile-dir>]
 
 dockerfile:
 	mkdir -p $(DOCKERFILE)
@@ -160,7 +162,8 @@ dockerfile-all:
 # http://windsock.io/automated-docker-image-builds-with-multiple-tags
 #
 # Usage:
-#	make post-push-hook [DOCKERFILE=] [TAGS=t1,t2,...]
+#	make post-push-hook [DOCKERFILE=<dockerfile-dir>]
+#	                    [TAGS=<docker-tag-1>[,<docker-tag-2>...]]
 
 post-push-hook:
 	mkdir -p $(DOCKERFILE)/hooks
@@ -187,8 +190,11 @@ post-push-hook-all:
 
 # Run tests for Docker image.
 #
+# Documentation of Bats:
+#	https://github.com/sstephenson/bats
+#
 # Usage:
-#	make test [DOCKERFILE=] [VERSION=]
+#	make test [DOCKERFILE=<dockerfile-dir>] [VERSION=<image-version>]
 
 test: deps.bats
 	DOCKERFILE=$(DOCKERFILE) IMAGE=$(IMAGE_NAME):$(VERSION) \
@@ -224,7 +230,7 @@ endif
 # Resolve project dependencies for running tests.
 #
 # Usage:
-#	make deps.bats [BATS_VER=]
+#	make deps.bats [BATS_VER=<bats-version>]
 
 BATS_VER ?= 0.4.0
 
