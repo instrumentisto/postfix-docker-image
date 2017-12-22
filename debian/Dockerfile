@@ -153,7 +153,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --no-install-suggests \
             curl \
  && curl -fL -o /tmp/s6-overlay.tar.gz \
-         https://github.com/just-containers/s6-overlay/releases/download/v1.21.2.1/s6-overlay-amd64.tar.gz \
+         https://github.com/just-containers/s6-overlay/releases/download/v1.21.2.2/s6-overlay-amd64.tar.gz \
  # In Debian: /bin -> /usr/bin
  # So unpacking s6-overlay.tar.gz to the / will replace /bin symlink with
  # /bin directory from archive.
