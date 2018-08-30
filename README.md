@@ -8,8 +8,8 @@ Postfix Docker Image
 
 ## Supported tags and respective `Dockerfile` links
 
-- `3.1.3`, `3.1`, `3`, `latest` [(debian/Dockerfile)][101]
-- `3.1.3-alpine`, `3.1-alpine`, `3-alpine`, `alpine` [(alpine/Dockerfile)][102]
+- `3.3.1`, `3.1`, `3`, `latest` [(debian/Dockerfile)][101]
+- `3.3.1-alpine`, `3.1-alpine`, `3-alpine`, `alpine` [(alpine/Dockerfile)][102]
 
 
 
