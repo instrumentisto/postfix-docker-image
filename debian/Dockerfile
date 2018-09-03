@@ -43,8 +43,8 @@ RUN apt-get update \
     \
  # Download and prepare Postfix sources
  && curl -fL -o /tmp/postfix.tar.gz \
-         http://cdn.postfix.johnriley.me/mirrors/postfix-release/official/postfix-3.1.3.tar.gz \
- && (echo "00e2b0974e59420cabfddc92597a99b42c8a8c9cd9a0c279c63ba6be9f40b15400f37dc16d0b1312130e72b5ba82b56fc7d579ee9ef975a957c0931b0401213c  /tmp/postfix.tar.gz" \
+         http://cdn.postfix.johnriley.me/mirrors/postfix-release/official/postfix-3.3.1.tar.gz \
+ && (echo "2307f50f8b7dab1db46ebe4ae30bc5682a25b9c49ae5ae65aa95b4620bb5450dd5929977c0f34b9e73a92ca6af36fd8e24167732420a1a2d89167c7a3b197276  /tmp/postfix.tar.gz" \
          | sha512sum -c -) \
  && tar -xzf /tmp/postfix.tar.gz -C /tmp/ \
  && cd /tmp/postfix-* \
@@ -153,7 +153,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --no-install-suggests \
             curl \
  && curl -fL -o /tmp/s6-overlay.tar.gz \
-         https://github.com/just-containers/s6-overlay/releases/download/v1.21.2.2/s6-overlay-amd64.tar.gz \
+         https://github.com/just-containers/s6-overlay/releases/download/v1.21.4.0/s6-overlay-amd64.tar.gz \
  # In Debian: /bin -> /usr/bin
  # So unpacking s6-overlay.tar.gz to the / will replace /bin symlink with
  # /bin directory from archive.
