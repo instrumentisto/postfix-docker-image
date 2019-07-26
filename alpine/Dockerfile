@@ -35,6 +35,9 @@ RUN apk update \
         cyrus-sasl-dev \
         openldap-dev \
     \
+ # Install tool for log management
+ && apk add --no-cache logrotate \
+    \
  # Download and prepare Postfix sources
  && curl -fL -o /tmp/postfix.tar.gz \
          http://cdn.postfix.johnriley.me/mirrors/postfix-release/official/postfix-3.1.3.tar.gz \
